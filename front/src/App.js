@@ -8,7 +8,7 @@ import { WelcomePage, LobbyPage, RoomPage, PageNotFoundPage } from 'pages';
 const ProtectedRoute = ({ component: Component, userName, ...rest}) => {
   return <Route {...rest} render={props =>
     userName ?
-      <Component {...props} />
+      <Component {...props} userName={userName} />
       :
       <Redirect to='/'></Redirect>
     }></Route>

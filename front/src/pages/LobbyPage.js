@@ -1,12 +1,13 @@
-import { Layout, Table } from 'antd';
+import { Layout, Table, Button } from 'antd';
 
 const { Header, Content } = Layout;
 
 function LobbyPage(props) {
+    console.log(props.userName);
     return (
         <Layout>
             <Header>
-                {props.userName}
+                <Button>{props.userName}</Button>
             </Header>
             <Content>
                 <div style={{margin: '100px auto', width: '1200px'}}>
