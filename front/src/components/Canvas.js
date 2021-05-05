@@ -56,39 +56,42 @@ function Canvas(props) {
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+
         const { socket } = props;
-        socket.on('broadcast-data', res => {
-            const { sender, data } = res;
-            if (sender === props.userName) return;
-            if (!playersAreDrawing.has(sender)) return;
-            const prevPoint = playersAreDrawing.get(sender);
-            const point = data;
+        if (socket) {
+            socket.on('broadcast-data', res => {
+                const { sender, data } = res;
+                if (sender === props.userName) return;
+                if (!playersAreDrawing.has(sender)) return;
+                const prevPoint = playersAreDrawing.get(sender);
+                const point = data;
 
-            draw([prevPoint, point]);
+                draw([prevPoint, point]);
 
-            playersAreDrawing.set(sender, point);
-        });
+                playersAreDrawing.set(sender, point);
+            });
 
-        socket.on('start-drawing', res => {
-            const userName = res.username;
-            const point = res.point;
-            if (props.userName === userName) return;
+            socket.on('start-drawing', res => {
+                const userName = res.username;
+                const point = res.point;
+                if (props.userName === userName) return;
 
-            console.log('start-drawing', userName, point);
+                console.log('start-drawing', userName, point);
 
-            playersAreDrawing.set(userName, point);
-        });
+                playersAreDrawing.set(userName, point);
+            });
 
-        socket.on('end-drawing', res => {
-            const userName = res;
-            if (props.userName === userName) return;
+            socket.on('end-drawing', res => {
+                const userName = res;
+                if (props.userName === userName) return;
 
-            if (playersAreDrawing.has(userName)) {
-                playersAreDrawing.delete(userName);
-            }
-        });
+                if (playersAreDrawing.has(userName)) {
+                    playersAreDrawing.delete(userName);
+                }
+            });
+        }
 
-    }, []);
+    }, [props.socket]);
 
 
     const draw = line => {

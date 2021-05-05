@@ -1,13 +1,47 @@
 import { Layout, Table, Button } from 'antd';
+import { useEffect, useState } from 'react';
+import { axios } from 'myaxios';
 
 const { Header, Content } = Layout;
 
 function LobbyPage(props) {
-    console.log(props.userName);
+    const [ roomList, setRoomList ] = useState([]);
+    useEffect(() => {
+        axios.get('http://localhost:5000/api/room/ALL').then(res => {
+            const data = res.data;
+            if (data.success) {
+                setRoomList(data.roomList);
+            }
+        });
+    }, []);
+
+    const createRoom = () => {
+        axios.post('http://localhost:5000/api/room', {
+            title: 'A'
+        }).then(res => {
+            const data = res.data;
+            if (data.success) {
+                console.log('create room success');
+            }
+        });
+    }
+
     return (
         <Layout>
-            <Header>
-                <Button>{props.userName}</Button>
+            <Header style={{
+                background: 'white'
+            }}>
+                <span>Hi, {props.userName}!</span> 
+                <Button 
+                    type='link' 
+                    onClick={() => {
+                        props.logOut();
+                    }}
+                >Logout</Button>
+                <Button 
+                    type='primary'
+                    onClick={createRoom}
+                >Create room</Button>
             </Header>
             <Content>
                 <div style={{margin: '100px auto', width: '1200px'}}>
@@ -24,17 +58,22 @@ function LobbyPage(props) {
                             title: 'Users',
                             dataIndex: 'users',
                             key: 'users',
-                            render: data => <span>{`${data.playing}/${data.maximum}`}</span>
+                            render: data => <span>{`${data.current}/${data.total}`}</span>
                         }]}
-                        dataSource={[{
-                            key: '1',
-                            title: 'room A',
-                            status: 'waiting',
-                            users: {
-                                playing: 3,
-                                maximum: 8
-                            }
-                        }]}
+                        dataSource={
+                            roomList && 
+                            roomList.map(room => {
+                                return {
+                                    key: room.id,
+                                    title: room.title,
+                                    status: room.status,
+                                    users: {
+                                        current: room['joinedUsers'].length,
+                                        total: room.total
+                                    }
+                                }
+                            })
+                        }
                         onRow={(record, rowIndex) => {
                             return {
                                 onClick: () => {
