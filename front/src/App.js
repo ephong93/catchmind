@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Redirect, Switch } from 'react-router-d
 import { useEffect, useState } from 'react'; 
 import 'antd/dist/antd.css';
 import { WelcomePage, LobbyPage, RoomPage, PageNotFoundPage } from 'pages';
-
+import axios from 'axios';
 
 const ProtectedRoute = ({ component: Component, userName, ...rest}) => {
   return <Route {...rest} render={props =>
@@ -22,6 +22,11 @@ function App() {
     console.log(newUserName);
     setUserName(newUserName);
     localStorage['catchMindUserName'] = newUserName;
+    axios.post('http://localhost:5000/api/user', {
+      username: newUserName
+    }).then(res => {
+      console.log(res);
+    });
   }
 
   useEffect(() => {
