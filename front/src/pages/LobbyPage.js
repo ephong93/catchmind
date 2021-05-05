@@ -1,29 +1,42 @@
 import { Layout, Table, Button } from 'antd';
 import { useEffect, useState } from 'react';
 import { axios } from 'myaxios';
+import io from 'socket.io-client';
 
 const { Header, Content } = Layout;
 
 function LobbyPage(props) {
     const [ roomList, setRoomList ] = useState([]);
+    const [ socket, setSocket ] = useState(null);
+
     useEffect(() => {
-        axios.get('http://localhost:5000/api/room/ALL').then(res => {
-            const data = res.data;
+        const socket = io('ws://127.0.0.1:5000/lobby', { transports: ["websocket"] });
+        setSocket(socket);
+
+        socket.on('update-room-list', data => {
+            setRoomList(data);
+        });
+
+        socket.on('enter-room', data => {
             if (data.success) {
-                setRoomList(data.roomList);
+                const roomId = data.roomId;
+                props.history.push(`/room/${roomId}`);
             }
         });
+
+        return () => {
+            socket.disconnect();
+            setSocket(null);
+        }
     }, []);
 
     const createRoom = () => {
-        axios.post('http://localhost:5000/api/room', {
-            title: 'A'
-        }).then(res => {
-            const data = res.data;
-            if (data.success) {
-                console.log('create room success');
-            }
-        });
+        socket.emit('create-room', { title: 'A' });
+    }
+
+    const enterRoom = roomId => {
+        socket.emit('enter-room', { 'room_id': roomId, 'username': props.userName });
+        props.history.push(`/room/${roomId}`);
     }
 
     return (
@@ -77,7 +90,7 @@ function LobbyPage(props) {
                         onRow={(record, rowIndex) => {
                             return {
                                 onClick: () => {
-                                    props.history.push(`/room/${record.key}`);
+                                    enterRoom(record.key);
                                 }
                             }
                         }}

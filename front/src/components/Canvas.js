@@ -34,7 +34,7 @@ function Canvas(props) {
 
     const handleMouseMove = e => {
         if (!isDrawing) return;
-        const { send, userName } = props;
+        const { userName } = props;
 
         const currentTime = Date.now();
         const timeGap = currentTime - startTime;
@@ -48,6 +48,11 @@ function Canvas(props) {
                 data: currentPoint
             });
         }
+    }
+
+    const send = data => {
+        const { socket } = props;
+        socket.emit('data', data);
     }
 
     useEffect(() => {

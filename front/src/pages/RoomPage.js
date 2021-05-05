@@ -14,13 +14,12 @@ function RoomPage(props) {
     useEffect(() => {
         const { roomId } = props.match.params;
 
-        const socket = io('ws://127.0.0.1:5000', { transports: ["websocket"] });
+        const socket = io('ws://127.0.0.1:5000/room', { transports: ["websocket"] });
         setSocket(socket);
 
         socket.on('connect', () => {
-            socket.emit('enter_room', {
-                'room_id': roomId,
-                'username': props.userName
+            socket.emit('update-room', {
+                'room_id': roomId
             });
             console.log('Connected!');
         });
@@ -29,12 +28,13 @@ function RoomPage(props) {
             console.log('Disconnected!');
         });
 
-        socket.on('update', room => {
+        socket.on('update-room', room => {
+            console.log('update-room!', room);
             setRoom(room);
         });
         
         return () => {
-            socket.emit('leave_room', {
+            socket.emit('leave-room', {
                 'room_id': roomId,
                 'username': props.userName
             });
@@ -44,11 +44,7 @@ function RoomPage(props) {
     }, []);
     
 
-    const send = data => {
-        console.log('send', data);
-        socket.emit('data', data);
-    }
-
+    
 
     return (
         <Layout>
@@ -78,7 +74,7 @@ function RoomPage(props) {
                         </div>
                     </Col>
                     <Col span={14} style={{borderRadius: '10px', boxShadow: '2px 2px 8px rgba(0, 0, 0, 0.2)'}}>                        
-                        <Canvas send={send} userName={props.userName} socket={socket} ></Canvas>
+                        <Canvas userName={props.userName} socket={socket} ></Canvas>
                     </Col>
                     <Col span={5}>
                         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', width: '100%', borderRadius: '2px'}}>
