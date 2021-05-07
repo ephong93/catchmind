@@ -65,7 +65,7 @@ function RoomPage(props) {
                         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', width: '100%', borderRadius: '2px'}}>
                             {
                                 room && 
-                                room.joinedUsers.map((user, index) => 
+                                room.joinedUsers.slice(0, 4).map((user, index) => 
                                     <div key={index} style={{width: '90%', height: '20%', borderRadius: '2px', margin: 'auto', boxShadow: '2px 2px 6px rgba(0, 0, 0, 0.2)', backgroundColor: 'white'}}>
                                         {user}
                                     </div>
@@ -80,7 +80,7 @@ function RoomPage(props) {
                         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', width: '100%', borderRadius: '2px'}}>
                             {
                                 room && 
-                                room.joinedUsers.map((user, index) => 
+                                room.joinedUsers.slice(4, 8).map((user, index) => 
                                     <div key={index} style={{width: '90%', height: '20%', borderRadius: '2px', margin: 'auto', boxShadow: '2px 2px 6px rgba(0, 0, 0, 0.2)', backgroundColor: 'white'}}>
                                         {user}
                                     </div>
