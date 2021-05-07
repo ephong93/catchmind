@@ -44,8 +44,6 @@ function RoomPage(props) {
     }, []);
     
 
-    
-
     return (
         <Layout>
             <Header style={{
@@ -58,6 +56,12 @@ function RoomPage(props) {
                         props.logOut();
                     }}
                 >Logout</Button>
+                <Button
+                    type='primary'
+                    onClick={() => {
+                        props.history.push('/lobby');
+                    }}
+                >Leave room</Button>
             </Header>
             <Content>
                 <Row style={{width: '1200px', margin: '120px auto'}}>
@@ -73,7 +77,7 @@ function RoomPage(props) {
                             }
                         </div>
                     </Col>
-                    <Col span={14} style={{borderRadius: '10px', boxShadow: '2px 2px 8px rgba(0, 0, 0, 0.2)'}}>                        
+                    <Col span={14}>                        
                         <Canvas userName={props.userName} socket={socket} ></Canvas>
                     </Col>
                     <Col span={5}>

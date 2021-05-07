@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
-
+import { useEffect, useRef, useState } from "react";
+import { ColorIconList } from 'components';
+import { Slider, Row, Col } from 'antd';
 
 function Canvas(props) {
     const canvasRef = useRef(null);
@@ -7,6 +8,9 @@ function Canvas(props) {
     let startTime = 0;
     let prevPoint = null;
     let playersAreDrawing = new Map();
+
+    const [ color, setColor ] = useState('black');
+    const [ penWidth, setPenWidth ] = useState(10);
 
     const setIsDrawing = v => { isDrawing = v; }
     const setStartTime = v => { startTime = v; }
@@ -48,6 +52,11 @@ function Canvas(props) {
                 data: currentPoint
             });
         }
+    }
+
+    const handleWheel = e => {
+        const deltaY = -1 * e.deltaY / 100;
+        setPenWidth(Math.max(3, Math.min(20, penWidth+deltaY)));
     }
 
     const send = data => {
@@ -103,12 +112,11 @@ function Canvas(props) {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
 
-        ctx.fillStyle = 'black';
+        ctx.strokeStyle = color;
         ctx.lineCap = 'round';
-        ctx.lineWidth = 10;
+        ctx.lineWidth = penWidth;
         ctx.lineJoin = 'round';
 
-        console.log(line);
 
         if (line.length === 1) {
             const point = line[0];
@@ -128,11 +136,28 @@ function Canvas(props) {
         }
     }
 
-    return <canvas height={500} width={700} ref={canvasRef}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseMove={handleMouseMove}
-    ></canvas>
+    return <div 
+            style={{
+                width: '700px',
+                height: '600px',
+                border: '1px solid black'
+            }}
+            onWheel={handleWheel}
+            >
+        <canvas height={500} width={600} ref={canvasRef}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+        ></canvas>
+        <Row>
+            <Col span={16}>
+                <ColorIconList colors={['black', 'blue', 'yellow', 'green', 'red']} selectedColor={color} selectColor={setColor}></ColorIconList>
+            </Col>
+            <Col span={8}>
+                <Slider min={3} max={20} step={1} defaultValue={10} value={penWidth} onChange={value => setPenWidth(value)}></Slider>
+            </Col>
+        </Row>
+        </div>
 }
 
 export default Canvas;

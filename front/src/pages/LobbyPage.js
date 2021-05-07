@@ -36,6 +36,7 @@ function LobbyPage(props) {
     const openCreateRoomModal = () => {
         setIsCreateRoomModalVisible(true);
     }
+
     const enterRoom = roomId => {
         socket.emit('enter-room', { 'room_id': roomId, 'username': props.userName });
     }
