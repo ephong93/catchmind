@@ -27,7 +27,7 @@ function Canvas(props) {
         const point = [e.nativeEvent.offsetX, e.nativeEvent.offsetY];
         setIsDrawing(true);
         setPrevPoint(point);
-        draw(point);
+        draw([point], penWidth, color);
 
         const { socket } = props;
         socket.emit('start-drawing', {
@@ -44,12 +44,13 @@ function Canvas(props) {
         const timeGap = currentTime - startTime;
         if (timeGap > 10) {
             const currentPoint = [e.nativeEvent.offsetX, e.nativeEvent.offsetY];
-            draw([prevPoint, currentPoint]);
+            draw([prevPoint, currentPoint], penWidth, color);
             setPrevPoint(currentPoint);
             setStartTime(currentTime);
             send({
                 sender: userName,
-                data: currentPoint
+                data: [currentPoint, penWidth, color]
+                
             });
         }
     }
@@ -78,11 +79,10 @@ function Canvas(props) {
                 if (sender === props.userName) return;
                 if (!playersAreDrawing.has(sender)) return;
                 const prevPoint = playersAreDrawing.get(sender);
-                const point = data;
 
-                draw([prevPoint, point]);
+                draw([prevPoint, data[0]], data[1], data[2]);
 
-                playersAreDrawing.set(sender, point);
+                playersAreDrawing.set(sender, data[0]);
             });
 
             socket.on('start-drawing', res => {
@@ -108,7 +108,8 @@ function Canvas(props) {
     }, [props.socket]);
 
 
-    const draw = line => {
+    const draw = (line, penWidth, color) => {
+        console.log(line, penWidth, color);
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
 
@@ -128,6 +129,7 @@ function Canvas(props) {
             let prevPoint = line[0];
             for (let i = 1; i < line.length; i++) {
                 let nextPoint = line[i];
+                console.log('prev', prevPoint, 'next', nextPoint);
                 ctx.moveTo(prevPoint[0], prevPoint[1]);
                 ctx.lineTo(nextPoint[0], nextPoint[1]);
                 prevPoint = nextPoint;
@@ -139,8 +141,7 @@ function Canvas(props) {
     return <div 
             style={{
                 width: '700px',
-                height: '600px',
-                border: '1px solid black'
+                height: '600px'
             }}
             onWheel={handleWheel}
             >
@@ -150,10 +151,13 @@ function Canvas(props) {
             onMouseMove={handleMouseMove}
         ></canvas>
         <Row>
-            <Col span={16}>
+            <Col span={14}>
                 <ColorIconList colors={['black', 'blue', 'yellow', 'green', 'red']} selectedColor={color} selectColor={setColor}></ColorIconList>
             </Col>
-            <Col span={8}>
+            <Col span={1}>
+                {penWidth}
+            </Col>
+            <Col span={6}>
                 <Slider min={3} max={20} step={1} defaultValue={10} value={penWidth} onChange={value => setPenWidth(value)}></Slider>
             </Col>
         </Row>
