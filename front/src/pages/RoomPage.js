@@ -1,8 +1,7 @@
 import { Layout, Row, Col, Button } from 'antd';
-import { Canvas } from 'components';
+import { Canvas, UserDisplay } from 'components';
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
-import { axios } from 'myaxios';
 
 const { Header, Content } = Layout;
 
@@ -22,9 +21,6 @@ function RoomPage(props) {
                 'room_id': roomId,
                 'username': props.userName
             });
-            //socket.emit('update-room', {
-            //    'room_id': roomId
-            //});
             console.log('Connected!');
         });
 
@@ -76,9 +72,7 @@ function RoomPage(props) {
                             {
                                 room && 
                                 room.joinedUsers.slice(0, 4).map((user, index) => 
-                                    <div key={index} style={{width: '90%', height: '20%', borderRadius: '2px', margin: 'auto', boxShadow: '2px 2px 6px rgba(0, 0, 0, 0.2)', backgroundColor: 'white'}}>
-                                        {user}
-                                    </div>
+                                    <UserDisplay key={index} user={user}></UserDisplay>
                                 )
                             }
                         </div>
@@ -91,9 +85,7 @@ function RoomPage(props) {
                             {
                                 room && 
                                 room.joinedUsers.slice(4, 8).map((user, index) => 
-                                    <div key={index} style={{width: '90%', height: '20%', borderRadius: '2px', margin: 'auto', boxShadow: '2px 2px 6px rgba(0, 0, 0, 0.2)', backgroundColor: 'white'}}>
-                                        {user}
-                                    </div>
+                                    <UserDisplay key={index} user={user}></UserDisplay>
                                 )
                             }
                         </div>

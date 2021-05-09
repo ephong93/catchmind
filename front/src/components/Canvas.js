@@ -84,7 +84,7 @@ function Canvas(props) {
                 if (sender === props.userName) return;
                 if (!playersAreDrawing.has(sender)) {
                     const point = data[0];
-                    playersAreDrawing.set(userName, point);
+                    playersAreDrawing.set(props.userName, point);
                     return;
                 }
                 const prevPoint = playersAreDrawing.get(sender);
