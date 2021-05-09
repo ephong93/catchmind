@@ -18,9 +18,12 @@ function RoomPage(props) {
         setSocket(socket);
 
         socket.on('connect', () => {
-            socket.emit('update-room', {
+            socket.emit('enter-room', {
                 'room_id': roomId
             });
+            //socket.emit('update-room', {
+            //    'room_id': roomId
+            //});
             console.log('Connected!');
         });
 
@@ -78,7 +81,7 @@ function RoomPage(props) {
                         </div>
                     </Col>
                     <Col span={14}>                        
-                        <Canvas userName={props.userName} socket={socket} ></Canvas>
+                        <Canvas userName={props.userName} room={room} socket={socket} ></Canvas>
                     </Col>
                     <Col span={5}>
                         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', width: '100%', borderRadius: '2px'}}>

@@ -20,7 +20,7 @@ function Canvas(props) {
         setIsDrawing(false);
 
         const { socket } = props;
-        socket.emit('end-drawing', props.userName);
+        socket.emit('end-drawing', {'username': props.userName, 'room_id': props.room.id});
     }
 
     const handleMouseDown = e => {
@@ -32,6 +32,7 @@ function Canvas(props) {
         const { socket } = props;
         socket.emit('start-drawing', {
             username: props.userName,
+            'room_id': props.room.id,
             point: point
         });
     }
@@ -49,6 +50,7 @@ function Canvas(props) {
             setStartTime(currentTime);
             send({
                 sender: userName,
+                'room_id': props.room.id,
                 data: [currentPoint, penWidth, color]
                 
             });
@@ -96,7 +98,7 @@ function Canvas(props) {
             });
 
             socket.on('end-drawing', res => {
-                const userName = res;
+                const userName = res.username;
                 if (props.userName === userName) return;
 
                 if (playersAreDrawing.has(userName)) {

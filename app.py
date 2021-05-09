@@ -1,5 +1,5 @@
 from flask import Flask, request, session
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit, join_room, leave_room, rooms
 from flask_cors import CORS
 
 
@@ -134,6 +134,9 @@ def handle_create_room_in_lobby(data):
     emit('update-room-list', room_list.get_room_list(), broadcast=True, namespace='/lobby')
     emit('update-room', room, broadcast=True, namespace='/room')
 
+
+
+
 @socketio.on('enter-room', namespace='/lobby')
 def handle_enter_room_in_lobby(data):
     room_id = data['room_id']
@@ -143,31 +146,41 @@ def handle_enter_room_in_lobby(data):
         room['joinedUsers'].append(username)
         emit('enter-room', { 'success': True, 'roomId': room_id }, namespace='/lobby')
         emit('update-room-list', room_list.get_room_list(), broadcast=True, namespace='/lobby')
-        emit('update-room', room, broadcast=True, namespace='/room')
+        #emit('update-room', room, broadcast=True, namespace='/room')
 
 
+@socketio.on('enter-room', namespace='/room')
+def handle_enter_room(data):
+    room_id = int(data['room_id'])
+    join_room(room_id)
+    room = room_list.get_room(room_id)
+    emit('update-room', room, to=room_id, include_self=True)
+    print('ENTER ROOM', room_id, room, room_list.rooms)
 
 @socketio.on('update-room', namespace='/room')
-def handle_connect_in_room(data):
+def handle_update_in_room(data):
     room_id = int(data['room_id'])
     room = room_list.get_room(room_id)
     print('update-room', room)
-    emit('update-room', room, namespace='/room')
+    emit('update-room', room, to=room_id, include_self=True)
 
 @socketio.on('data', namespace='/room')
 def handle_event(data):
     print(data)
-    emit('broadcast-data', data, broadcast=True, include_self=False, namespace='/room')
+    room_id = int(data['room_id'])
+    emit('broadcast-data', data, to=room_id, include_self=False)
 
 @socketio.on('start-drawing', namespace='/room')
-def handle_start_drawing_event(data, namespace='/room'):
+def handle_start_drawing_event(data):
     print('start-drawing', data)
-    emit('start-drawing', data, broadcast=True, include_self=False, namespace='/room')
+    room_id = int(data['room_id'])
+    emit('start-drawing', data, to=room_id, include_self=False)
 
 @socketio.on('end-drawing', namespace='/room')
-def handle_end_drawing_event(data, namespace='/room'):
-    print(data)
-    emit('end-drawing', data, broadcast=True, include_self=False, namespace='/room')
+def handle_end_drawing_event(data):
+    username = data['username']
+    room_id = int(data['room_id'])
+    emit('end-drawing', data, to=room_id, include_self=False)
 
 
 @socketio.on('leave-room', namespace='/room')
@@ -180,7 +193,8 @@ def handle_leave_room(data):
     if len(room['joinedUsers']) == 0:
         room_list.rooms.pop(room_id)
     print('leave_room', room_list.rooms)
-    emit('update-room', room, broadcast=True, namespace='/room')
+    leave_room(room_id)
+    emit('update-room', room, to=room_id)
     emit('update-room-list', room_list.get_room_list(), broadcast=True, namespace='/lobby')
 
 
