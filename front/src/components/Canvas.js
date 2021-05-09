@@ -59,7 +59,7 @@ function Canvas(props) {
     }
 
     const handleWheel = e => {
-        const deltaY = -1 * e.deltaY / 100;
+        const deltaY = parseInt(-1 * e.deltaY / 100);
         setPenWidth(Math.max(3, Math.min(20, penWidth+deltaY)));
     }
 
@@ -74,18 +74,24 @@ function Canvas(props) {
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-
         const { socket } = props;
         if (socket) {
-            socket.on('data-drawing', res => {
+            socket.on('data-drawing', res => { // TODO: send dot -> send line
                 const { sender, data } = res;
+                const point = data[0];
+                const penWith = data[1];
+                const color = data[2];
                 if (sender === props.userName) return;
-                if (!playersAreDrawing.has(sender)) return;
+                if (!playersAreDrawing.has(sender)) {
+                    const point = data[0];
+                    playersAreDrawing.set(userName, point);
+                    return;
+                }
                 const prevPoint = playersAreDrawing.get(sender);
 
-                draw([prevPoint, data[0]], data[1], data[2]);
+                draw([prevPoint, point], penWidth, color);
 
-                playersAreDrawing.set(sender, data[0]);
+                playersAreDrawing.set(sender, point);
             });
 
             socket.on('start-drawing', res => {
