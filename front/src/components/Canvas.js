@@ -11,6 +11,7 @@ function Canvas(props) {
 
     const [ color, setColor ] = useState('black');
     const [ penWidth, setPenWidth ] = useState(10);
+    const [ isSynchronized, setIsSynchronized ] = useState(false);
 
     const setIsDrawing = v => { isDrawing = v; }
     const setStartTime = v => { startTime = v; }
@@ -64,7 +65,7 @@ function Canvas(props) {
 
     const send = data => {
         const { socket } = props;
-        socket.emit('data', data);
+        socket.emit('data-drawing', data);
     }
 
     useEffect(() => {
@@ -76,7 +77,7 @@ function Canvas(props) {
 
         const { socket } = props;
         if (socket) {
-            socket.on('broadcast-data', res => {
+            socket.on('data-drawing', res => {
                 const { sender, data } = res;
                 if (sender === props.userName) return;
                 if (!playersAreDrawing.has(sender)) return;
@@ -105,9 +106,41 @@ function Canvas(props) {
                     playersAreDrawing.delete(userName);
                 }
             });
+
+            socket.on('send-image', res => {
+                const { sendTo, imageDataURL } = res;
+                if (sendTo === props.userName) {
+                    const canvas = canvasRef.current;
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image;
+                    img.onload = () => {
+                        ctx.drawImage(img, 0, 0);
+                    };
+                    img.src = imageDataURL
+                    setIsSynchronized(true);
+                }
+            });
         }
 
     }, [props.socket]);
+
+    useEffect(() => {
+        if (props.room) {
+            if (props.room.joinedUsers.length === 1) setIsSynchronized(true);
+            else {
+                const { socket, room } = props;
+                socket.on('request-image', res => {
+                    const { userRequested, requestedTo } = res;
+
+                    const canvas = canvasRef.current;
+
+                    if (props.userName === requestedTo) {
+                        socket.emit('send-image', {'send_to': userRequested, imageDataURL: canvas.toDataURL(), room_id: room.id});
+                    }
+                });
+            }
+        }
+    }, [props.room]);
 
 
     const draw = (line, penWidth, color) => {

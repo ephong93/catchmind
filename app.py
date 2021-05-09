@@ -151,11 +151,26 @@ def handle_enter_room_in_lobby(data):
 
 @socketio.on('enter-room', namespace='/room')
 def handle_enter_room(data):
+    username = data['username']
     room_id = int(data['room_id'])
     join_room(room_id)
     room = room_list.get_room(room_id)
     emit('update-room', room, to=room_id, include_self=True)
-    print('ENTER ROOM', room_id, room, room_list.rooms)
+
+    if len(room['joinedUsers']) > 1:
+        for joined_user in room['joinedUsers']:
+            if joined_user != username:
+                break
+        emit('request-image', {'userRequested': username, 'requestedTo': joined_user}, to=room_id, include_self=False)
+
+
+@socketio.on('send-image', namespace='/room')
+def handle_send_image_in_room(data):
+    send_to = data['send_to']
+    room_id = data['room_id']
+    image = data['imageDataURL']
+    emit('send-image', {'imageDataURL': image, 'sendTo': send_to}, to=room_id, include_self=False)
+
 
 @socketio.on('update-room', namespace='/room')
 def handle_update_in_room(data):
@@ -164,17 +179,18 @@ def handle_update_in_room(data):
     print('update-room', room)
     emit('update-room', room, to=room_id, include_self=True)
 
-@socketio.on('data', namespace='/room')
-def handle_event(data):
-    print(data)
-    room_id = int(data['room_id'])
-    emit('broadcast-data', data, to=room_id, include_self=False)
 
 @socketio.on('start-drawing', namespace='/room')
 def handle_start_drawing_event(data):
     print('start-drawing', data)
     room_id = int(data['room_id'])
     emit('start-drawing', data, to=room_id, include_self=False)
+
+@socketio.on('data-drawing', namespace='/room')
+def handle_event(data):
+    print(data)
+    room_id = int(data['room_id'])
+    emit('data-drawing', data, to=room_id, include_self=False)
 
 @socketio.on('end-drawing', namespace='/room')
 def handle_end_drawing_event(data):

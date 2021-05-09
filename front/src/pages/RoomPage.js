@@ -19,7 +19,8 @@ function RoomPage(props) {
 
         socket.on('connect', () => {
             socket.emit('enter-room', {
-                'room_id': roomId
+                'room_id': roomId,
+                'username': props.userName
             });
             //socket.emit('update-room', {
             //    'room_id': roomId
@@ -35,6 +36,8 @@ function RoomPage(props) {
             console.log('update-room!', room);
             setRoom(room);
         });
+
+        
         
         return () => {
             socket.emit('leave-room', {
