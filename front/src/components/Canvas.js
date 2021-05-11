@@ -79,7 +79,7 @@ function Canvas(props) {
             socket.on('data-drawing', res => { // TODO: send dot -> send line
                 const { sender, data } = res;
                 const point = data[0];
-                const penWith = data[1];
+                const penWidth = data[1];
                 const color = data[2];
                 if (sender === props.userName) return;
                 if (!playersAreDrawing.has(sender)) {
