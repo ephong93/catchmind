@@ -4,64 +4,81 @@ from app import lobby
 
 @socketio.on('enter-room', namespace='/room')
 def handle_enter_room(data):
+    # read data
     username = data['username']
     room_id = int(data['room_id'])
+
+    # process
     join_room(room_id)
     room = lobby.get_room(room_id)
-    emit('update-room', room, to=room_id, include_self=True)
 
+    # send data
     if len(room['joinedUsers']) > 1:
         for joined_user in room['joinedUsers']:
             if joined_user != username:
                 break
         emit('request-image', {'userRequested': username, 'requestedTo': joined_user}, to=room_id, include_self=False)
 
+    emit('update-room', room, to=room_id, include_self=True)
+
 
 @socketio.on('send-image', namespace='/room')
 def handle_send_image_in_room(data):
+    # read data
     send_to = data['send_to']
     room_id = data['room_id']
     image = data['imageDataURL']
+    
+    # send data
     emit('send-image', {'imageDataURL': image, 'sendTo': send_to}, to=room_id, include_self=False)
 
 
 @socketio.on('update-room', namespace='/room')
 def handle_update_in_room(data):
+    # read data
     room_id = int(data['room_id'])
     room = lobby.get_room(room_id)
-    print('update-room', room)
+    # send data
     emit('update-room', room, to=room_id, include_self=True)
 
 
 @socketio.on('start-drawing', namespace='/room')
 def handle_start_drawing_event(data):
-    print('start-drawing', data)
+    # read data
     room_id = int(data['room_id'])
+    # send data
     emit('start-drawing', data, to=room_id, include_self=False)
 
 @socketio.on('data-drawing', namespace='/room')
 def handle_event(data):
-    print(data)
+    # read data
     room_id = int(data['room_id'])
+    # send data
     emit('data-drawing', data, to=room_id, include_self=False)
 
 @socketio.on('end-drawing', namespace='/room')
 def handle_end_drawing_event(data):
+    # read data
     username = data['username']
     room_id = int(data['room_id'])
+    # send data
     emit('end-drawing', data, to=room_id, include_self=False)
 
 
 @socketio.on('leave-room', namespace='/room')
 def handle_leave_room(data):
+    # read data
     room_id = int(data['room_id'])
     username = data['username']
     room = lobby.get_room(room_id)
     joined_users = room['joinedUsers']
+
+    # process
     joined_users.remove(username)
     if len(room['joinedUsers']) == 0:
         lobby.rooms.pop(room_id)
-    print('leave_room', lobby.rooms)
     leave_room(room_id)
+
+    # send data
     emit('update-room', room, to=room_id)
     emit('update-room-list', lobby.get_room_list(), broadcast=True, namespace='/lobby')
