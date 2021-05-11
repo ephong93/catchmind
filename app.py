@@ -1,4 +1,4 @@
-from flask import Flask, request, session
+from flask import Flask
 from flask_socketio import SocketIO, emit, join_room, leave_room, rooms
 from flask_cors import CORS
 
@@ -36,11 +36,6 @@ class RoomList:
 
 
 room_list = RoomList()
-
-
-
-
-
 
 
 if __name__ == '__main__':
