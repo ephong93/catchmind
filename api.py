@@ -1,5 +1,8 @@
 from flask import Blueprint
 from flask import request, session
+from app import room_list
+
+
 bp = Blueprint('api', __name__, '/api')
 
 
