@@ -1,13 +1,13 @@
 from flask_socketio import emit, join_room, leave_room
 from event_handler import socketio
-from app import room_list
+from app import lobby
 
 @socketio.on('enter-room', namespace='/room')
 def handle_enter_room(data):
     username = data['username']
     room_id = int(data['room_id'])
     join_room(room_id)
-    room = room_list.get_room(room_id)
+    room = lobby.get_room(room_id)
     emit('update-room', room, to=room_id, include_self=True)
 
     if len(room['joinedUsers']) > 1:
@@ -28,7 +28,7 @@ def handle_send_image_in_room(data):
 @socketio.on('update-room', namespace='/room')
 def handle_update_in_room(data):
     room_id = int(data['room_id'])
-    room = room_list.get_room(room_id)
+    room = lobby.get_room(room_id)
     print('update-room', room)
     emit('update-room', room, to=room_id, include_self=True)
 
@@ -56,12 +56,12 @@ def handle_end_drawing_event(data):
 def handle_leave_room(data):
     room_id = int(data['room_id'])
     username = data['username']
-    room = room_list.get_room(room_id)
+    room = lobby.get_room(room_id)
     joined_users = room['joinedUsers']
     joined_users.remove(username)
     if len(room['joinedUsers']) == 0:
-        room_list.rooms.pop(room_id)
-    print('leave_room', room_list.rooms)
+        lobby.rooms.pop(room_id)
+    print('leave_room', lobby.rooms)
     leave_room(room_id)
     emit('update-room', room, to=room_id)
-    emit('update-room-list', room_list.get_room_list(), broadcast=True, namespace='/lobby')
+    emit('update-room-list', lobby.get_room_list(), broadcast=True, namespace='/lobby')

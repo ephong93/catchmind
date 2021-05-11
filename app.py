@@ -1,8 +1,8 @@
 from flask import Flask
 from flask_cors import CORS
-from game import RoomList
+from game import Lobby
 
-room_list = RoomList()
+lobby = Lobby()
 
 if __name__ == '__main__':
     app = Flask(__name__)

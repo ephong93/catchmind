@@ -1,4 +1,4 @@
-class RoomList:
+class Lobby:
     def __init__(self):
         self.rooms = {}
         self.next_id = 0
@@ -28,3 +28,12 @@ class RoomList:
         else:
             return None
 
+class Room:
+    def __init__(self, room_id, title, total=8, joined_users=[]):
+        self.room_id = room_id
+        self.title = title
+        self.status = 'waiting'
+        self.total = total
+        self.joined_users = joined_users
+
+    

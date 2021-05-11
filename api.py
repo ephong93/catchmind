@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask import request, session
-from app import room_list
+from app import lobby
 
 bp = Blueprint('api', __name__, '/api')
 
@@ -39,7 +39,7 @@ def user():
 def room(room_id=None):
     if request.method == 'GET':
         if room_id == 'ALL':
-            rooms = room_list.get_room_list()
+            rooms = lobby.get_room_list()
             return {
                 'success': True,
                 'roomList': rooms
@@ -54,7 +54,7 @@ def room(room_id=None):
                 }
             username = session['username']
             room_id = int(room_id)
-            room = room_list.get_room(room_id)
+            room = lobby.get_room(room_id)
             if username not in room['joinedUsers']:
                 room['joinedUsers'].append(username)
             if room is not None:
@@ -70,8 +70,8 @@ def room(room_id=None):
     elif request.method == 'POST':
         data = request.get_json()
         title = data['title']
-        room = room_list.create_room(title)
-        print(room_list.rooms)
+        room = lobby.create_room(title)
+        print(lobby.rooms)
         return {
             'success': True,
             'room': room
