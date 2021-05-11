@@ -1,4 +1,4 @@
-from flask_socketio import emit, join_room, leave_room, rooms
+from flask_socketio import emit, join_room, leave_room
 from event_handler import socketio
 from app import room_list
 

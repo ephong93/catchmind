@@ -1,4 +1,4 @@
-from flask_socketio import emit, join_room, leave_room, rooms
+from flask_socketio import emit
 from event_handler import socketio
 from app import room_list
 
@@ -17,9 +17,6 @@ def handle_create_room_in_lobby(data):
     emit('enter-room', { 'success': True, 'roomId': room_id}, namespace='/lobby')
     emit('update-room-list', room_list.get_room_list(), broadcast=True, namespace='/lobby')
     emit('update-room', room, broadcast=True, namespace='/room')
-
-
-
 
 @socketio.on('enter-room', namespace='/lobby')
 def handle_enter_room_in_lobby(data):
