@@ -42,27 +42,12 @@ def handle_update_in_room(data):
     emit('update-room', room, to=room_id, include_self=True)
 
 
-@socketio.on('start-drawing', namespace='/room')
-def handle_start_drawing_event(data):
-    # read data
-    room_id = int(data['room_id'])
-    # send data
-    emit('start-drawing', data, to=room_id, include_self=False)
-
-@socketio.on('data-drawing', namespace='/room')
+@socketio.on('draw', namespace='/room')
 def handle_event(data):
     # read data
     room_id = int(data['room_id'])
     # send data
-    emit('data-drawing', data, to=room_id, include_self=False)
-
-@socketio.on('end-drawing', namespace='/room')
-def handle_end_drawing_event(data):
-    # read data
-    username = data['username']
-    room_id = int(data['room_id'])
-    # send data
-    emit('end-drawing', data, to=room_id, include_self=False)
+    emit('draw', data, to=room_id, include_self=False)
 
 
 @socketio.on('leave-room', namespace='/room')
