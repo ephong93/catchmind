@@ -35,5 +35,22 @@ class Room:
         self.status = 'waiting'
         self.total = total
         self.joined_users = joined_users
+        self.drawing_user = None
+        
+    def start(self):
+        pass
+    
+    def end(self):
+        pass
+
+    def turn(self):
+        pass
+
+    def answer(self):
+        pass
+
+    
+
+
 
     
