@@ -28,13 +28,11 @@ function Canvas(props) {
         const point = [e.nativeEvent.offsetX, e.nativeEvent.offsetY];
         setIsDrawing(true);
         setPrevPoint(point);
-        draw([point], penWidth, color);
-
-        const { socket } = props;
-        socket.emit('start-drawing', {
-            username: props.userName,
+        draw([point, point], penWidth, color);
+        send({
+            sender: props.userName,
             'room_id': props.room.id,
-            point: point
+            data: [[point, point], penWidth, color]
         });
     }
 
@@ -46,14 +44,14 @@ function Canvas(props) {
         const timeGap = currentTime - startTime;
         if (timeGap > 10) {
             const currentPoint = [e.nativeEvent.offsetX, e.nativeEvent.offsetY];
-            draw([prevPoint, currentPoint], penWidth, color);
+            const line = [prevPoint, currentPoint].slice();
+            draw(line, penWidth, color);
             setPrevPoint(currentPoint);
             setStartTime(currentTime);
             send({
                 sender: userName,
                 'room_id': props.room.id,
-                data: [currentPoint, penWidth, color]
-                
+                data: [line, penWidth, color]
             });
         }
     }
@@ -65,7 +63,7 @@ function Canvas(props) {
 
     const send = data => {
         const { socket } = props;
-        socket.emit('data-drawing', data);
+        socket.emit('draw', data);
     }
 
     useEffect(() => {
@@ -76,41 +74,13 @@ function Canvas(props) {
 
         const { socket } = props;
         if (socket) {
-            socket.on('data-drawing', res => { // TODO: send dot -> send line
+            socket.on('draw', res => { // TODO: send dot -> send line
                 const { sender, data } = res;
-                const point = data[0];
+                const line = data[0];
                 const penWidth = data[1];
                 const color = data[2];
                 if (sender === props.userName) return;
-                if (!playersAreDrawing.has(sender)) {
-                    const point = data[0];
-                    playersAreDrawing.set(props.userName, point);
-                    return;
-                }
-                const prevPoint = playersAreDrawing.get(sender);
-
-                draw([prevPoint, point], penWidth, color);
-
-                playersAreDrawing.set(sender, point);
-            });
-
-            socket.on('start-drawing', res => {
-                const userName = res.username;
-                const point = res.point;
-                if (props.userName === userName) return;
-
-                console.log('start-drawing', userName, point);
-
-                playersAreDrawing.set(userName, point);
-            });
-
-            socket.on('end-drawing', res => {
-                const userName = res.username;
-                if (props.userName === userName) return;
-
-                if (playersAreDrawing.has(userName)) {
-                    playersAreDrawing.delete(userName);
-                }
+                draw(line, penWidth, color);
             });
 
             socket.on('send-image', res => {
