@@ -1,9 +1,11 @@
+from flask_socketio import emit
+
 class Lobby:
     def __init__(self):
         self.rooms = {}
         self.next_id = 0
 
-    def create_room(self, title):
+    def create_room(self, title, username):
         room_id = self.next_id
         self.rooms[room_id] = {
             'id': room_id,
@@ -13,7 +15,15 @@ class Lobby:
             'joinedUsers': []
         }
         self.next_id += 1
-        return self.rooms[room_id].copy()
+
+        room = self.rooms[room_id]
+        room['joinedUsers'].append(username)
+
+        # send data
+        emit('enter-room', { 'success': True, 'roomId': room_id}, namespace='/lobby')
+        emit('update-room-list', self.get_room_list(), broadcast=True, namespace='/lobby')
+        emit('update-room', room, broadcast=True, namespace='/room')
+
 
     def get_room_list(self):
         room_list = []
@@ -28,6 +38,18 @@ class Lobby:
         else:
             return None
 
+    def enter_room(self, username, room_id):
+        room = self.get_room(room_id)
+    
+        if len(room['joinedUsers']) < room['total']:
+            room['joinedUsers'].append(username)
+
+            emit('enter-room', { 'success': True, 'roomId': room_id }, namespace='/lobby')
+            emit('update-room-list', self.get_room_list(), broadcast=True, namespace='/lobby')
+
+
+
+
 class Room:
     def __init__(self, room_id, title, total=8, joined_users=[]):
         self.room_id = room_id
@@ -37,3 +59,5 @@ class Room:
         self.joined_users = joined_users
 
     
+
+        

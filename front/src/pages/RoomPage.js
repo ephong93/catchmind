@@ -1,5 +1,5 @@
-import { Layout, Row, Col, Button } from 'antd';
-import { Canvas, UserDisplay } from 'components';
+import { Layout, Row, Col, Button, Input } from 'antd';
+import { Canvas, UserDisplay, ChatDisplay } from 'components';
 import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 
@@ -32,8 +32,6 @@ function RoomPage(props) {
             console.log('update-room!', room);
             setRoom(room);
         });
-
-        
         
         return () => {
             socket.emit('leave-room', {
@@ -79,6 +77,7 @@ function RoomPage(props) {
                     </Col>
                     <Col span={14}>                        
                         <Canvas userName={props.userName} room={room} socket={socket} ></Canvas>
+                        <ChatDisplay></ChatDisplay>
                     </Col>
                     <Col span={5}>
                         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', width: '100%', borderRadius: '2px'}}>

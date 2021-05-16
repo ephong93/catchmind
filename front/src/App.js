@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import 'antd/dist/antd.css';
 import { WelcomePage, LobbyPage, RoomPage, PageNotFoundPage } from 'pages';
 import { axios } from 'myaxios';
-import { io } from 'socket.io-client';
 
 const ProtectedRoute = ({ component: Component, userName, ...rest}) => {
   return <Route {...rest} render={props =>
@@ -42,17 +41,7 @@ function App() {
     }
   }, [userName]);
 
-  useEffect(() => {
-    const socket = io('ws://127.0.0.1:5000', { transports: ["websocket"] });
-    
-    socket.on('connect', () => {
-      console.log('CONNECTED!');
-    });
 
-    return () => {
-      socket.disconnect();
-    }
-  }, []);
 
   return (
     <div className="App">

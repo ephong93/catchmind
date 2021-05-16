@@ -7,19 +7,8 @@ def handle_enter_room(data):
     # read data
     username = data['username']
     room_id = int(data['room_id'])
-
-    # process
-    join_room(room_id)
     room = lobby.get_room(room_id)
-
-    # send data
-    if len(room['joinedUsers']) > 1:
-        for joined_user in room['joinedUsers']:
-            if joined_user != username:
-                break
-        emit('request-image', {'userRequested': username, 'requestedTo': joined_user}, to=room_id, include_self=False)
-
-    emit('update-room', room, to=room_id, include_self=True)
+    room.enter_room(username)
 
 
 @socketio.on('send-image', namespace='/room')
