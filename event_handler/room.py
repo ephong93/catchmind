@@ -10,15 +10,6 @@ def handle_event(data):
     emit('draw', data, to=room_id, include_self=False)
 
 
-@socketio.on('enter-room', namespace='/room')
-def handle_enter_room(data):
-    # read data
-    username = data['username']
-    room_id = int(data['room_id'])
-    room = lobby.get_room(room_id)
-    room.enter_room(username)
-
-
 @socketio.on('update-room', namespace='/room')
 def handle_update_in_room(data):
     # read data
@@ -28,23 +19,23 @@ def handle_update_in_room(data):
     emit('update-room', room, to=room_id, include_self=True)
 
 
+@socketio.on('enter-room', namespace='/room')
+def handle_enter_room(data):
+    # read data
+    username = data['username']
+    room_id = int(data['room_id'])
+    room = lobby.get_room(room_id)
+    room.enter_room(username)
+
+
 @socketio.on('leave-room', namespace='/room')
 def handle_leave_room(data):
     # read data
     room_id = int(data['room_id'])
     username = data['username']
     room = lobby.get_room(room_id)
-    joined_users = room['joinedUsers']
 
-    # process
-    joined_users.remove(username)
-    if len(room['joinedUsers']) == 0:
-        lobby.rooms.pop(room_id)
-    leave_room(room_id)
-
-    # send data
-    emit('update-room', room, to=room_id)
-    emit('update-room-list', lobby.get_room_list(), broadcast=True, namespace='/lobby')
+    room.leave_room(username)
 
 
 @socketio.on('send-image', namespace='/room')

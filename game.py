@@ -1,4 +1,4 @@
-from flask_socketio import emit
+from flask_socketio import emit, join_room, leave_room
 
 class Lobby:
     def __init__(self):
@@ -7,42 +7,36 @@ class Lobby:
 
     def create_room(self, title, username):
         room_id = self.next_id
-        self.rooms[room_id] = {
-            'id': room_id,
-            'title': title,
-            'status': 'waiting',
-            'total': 8,
-            'joinedUsers': []
-        }
+        self.rooms[room_id] = Room(room_id, title, joined_users=[username])
         self.next_id += 1
-
         room = self.rooms[room_id]
-        room['joinedUsers'].append(username)
 
         # send data
         emit('enter-room', { 'success': True, 'roomId': room_id}, namespace='/lobby')
         emit('update-room-list', self.get_room_list(), broadcast=True, namespace='/lobby')
-        emit('update-room', room, broadcast=True, namespace='/room')
+        emit('update-room', room.to_json(), broadcast=True, namespace='/room')
 
+    def remove_room(self, room_id):
+        self.rooms.remove(room_id)
 
     def get_room_list(self):
         room_list = []
         for room_id in self.rooms:
-            room = self.rooms[room_id].copy()
+            room = self.rooms[room_id].to_json()
             room_list.append(room)
         return room_list
 
     def get_room(self, room_id):
         if room_id in self.rooms:
-            return self.rooms[room_id].copy()
+            return self.rooms[room_id]
         else:
             return None
 
     def enter_room(self, username, room_id):
         room = self.get_room(room_id)
     
-        if len(room['joinedUsers']) < room['total']:
-            room['joinedUsers'].append(username)
+        if len(room.joined_users) < room.total:
+            room.joined_users.append(username)
 
             emit('enter-room', { 'success': True, 'roomId': room_id }, namespace='/lobby')
             emit('update-room-list', self.get_room_list(), broadcast=True, namespace='/lobby')
@@ -57,24 +51,33 @@ class Room:
         self.status = 'waiting'
         self.total = total
         self.joined_users = joined_users
-        self.drawing_user = None
-        
-    def start(self):
-        pass
-    
-    def end(self):
-        pass
-
-    def turn(self):
-        pass
-
-    def answer(self):
-        pass
 
     
+    def enter_room(self, username):
+        join_room(self.room_id)
+
+        if len(self.joined_users) > 1:
+            for joined_user in self.joined_users:
+                if joined_user != username:
+                    break
+            emit('request-image', {'userRequested': username, 'requestedTo': joined_user}, to=self.room_id, include_self=False)
+        emit('update-room', self.to_json(), to=self.room_id, include_self=True)
 
 
+    def leave_room(self, username):
+        self.joined_users.remove(username)
+        if len(room.joined_users) == 0:
+            lobby.remove_room(room_id)
+        leave_room(room_id)
 
-    
+        emit('update-room', self.to_json(), to=room_id)
+        emit('update-room-list', lobby.get_room_list(), broadcast=True, namespace='/lobby')
 
-        
+    def to_json(self):
+        return {
+            'id': self.room_id,
+            'title': self.title,
+            'status': self.status,
+            'joinedUsers': self.joined_users,
+            'total': self.total
+        }
