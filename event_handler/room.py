@@ -34,7 +34,6 @@ def handle_leave_room(data):
     room_id = int(data['room_id'])
     username = data['username']
     room = lobby.get_room(room_id)
-
     room.leave_room(username)
 
 
@@ -49,5 +48,12 @@ def handle_send_image_in_room(data):
     emit('send-image', {'imageDataURL': image, 'sendTo': send_to}, to=room_id, include_self=False)
 
 
+@socketio.on('request-answer', namespace='/room')
+def handle_request_answer_in_room(data):
+    room_id = data['room_id']
+    user_requested = data['userRequested']
 
-
+    room = lobby.get_room(room_id)
+    if user_requested == room.current_player:
+        emit('answer', room.current_answer)
+    

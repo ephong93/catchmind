@@ -1,8 +1,29 @@
-import { Typography, Avatar } from 'antd';
+import { useState } from 'react';
+import { Typography, Avatar, Button } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 const { Title } = Typography;
 
 function UserDisplay(props) {
+    const ready = () => {
+        if (props.socket) {
+            props.socket.emit('ready', 
+                {
+                    username: props.userName
+                }
+            )
+        }
+    }
+
+    const unready = () => {
+        if (props.socket) {
+            props.socket.emit('unready', 
+                {
+                    username: props.userName
+                }
+            )
+        }
+    }
+
     return <div 
         style={{
             width: '90%', 
@@ -25,6 +46,14 @@ function UserDisplay(props) {
                             fontSize: 'large'
                         }}
                     >{props.user}</div>
+                </div>
+                <div>
+                    { props.isReady ? 
+                        <Button type='primary' disabled onClick={unready}>Ready</Button>
+                        :
+                        <Button type='primary' onClick={ready}>Ready</Button>
+
+                    }
                 </div>
     </div>
 }
