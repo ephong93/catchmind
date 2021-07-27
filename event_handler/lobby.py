@@ -14,6 +14,7 @@ def handle_create_room_in_lobby(data):
 
     lobby.create_room(title, username)
 
+
 @socketio.on('enter-room', namespace='/lobby')
 def handle_enter_room_in_lobby(data):
     room_id = data['room_id']

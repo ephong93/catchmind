@@ -8,7 +8,7 @@ class Lobby:
 
     def create_room(self, title, username):
         room_id = self.next_id
-        self.rooms[room_id] = Room(room_id, title, joined_users=[])
+        self.rooms[room_id] = Room(room_id, title)
         self.next_id += 1
         room = self.rooms[room_id]
 
@@ -44,32 +44,26 @@ class Lobby:
             emit('enter-room', { 'success': False, 'roomId': room_id }, namespace='/room')
 
 
-
-
 class Room:
-    def __init__(self, room_id, title, total=8, joined_users=[]):
+    session_table = {}
+
+    def __init__(self, room_id, title, total=8, joined_users={}):
         self.room_id = room_id
         self.title = title
         self.status = 'waiting' # waiting, playing
         self.total = total
         self.joined_users = joined_users
-        self.current_player = None
-        self.current_answer = None
-        self.count_turns = {}
-        self.total_rounds = 2
-        self.current_round = 0
-        self.point_status = {}
-        self.ready_status = {}
 
     def check_if_enterable(self):
         return len(self.joined_users) < self.total
-    
-    def enter_room(self, username):
+
+    def enter_room(self, username, session_id):
         if len(self.joined_users) >= self.total:
             emit('enter-room', { 'success': False, 'roomId': self.room_id }, namespace='/room')
             return
 
-        self.joined_users.append(username)
+        self.joined_users[session_id] = username
+        Room.session_table[session_id] = self.room_id
         join_room(self.room_id)
 
         if len(self.joined_users) > 1:
@@ -80,9 +74,9 @@ class Room:
         emit('update-room', self.to_json(), to=self.room_id, include_self=True)
 
 
-    def leave_room(self, username):
-        self.ready_status.pop(username)
-        self.joined_users.remove(username)
+    def leave_room(self, session_id):
+        if session_id in self.joined_users:
+            self.joined_users.pop(session_id)
         if len(self.joined_users) == 0:
             lobby.remove_room(self.room_id)
         leave_room(self.room_id)
@@ -95,7 +89,7 @@ class Room:
             'id': self.room_id,
             'title': self.title,
             'status': self.status,
-            'joinedUsers': self.joined_users,
+            'joinedUsers': [self.joined_users[session_id] for session_id in self.joined_users],
             'total': self.total
         }
 

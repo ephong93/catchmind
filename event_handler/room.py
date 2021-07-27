@@ -1,6 +1,7 @@
 from flask_socketio import emit, join_room, leave_room
+from flask import request
 from event_handler import socketio
-from game import lobby
+from game import lobby, Room
 
 @socketio.on('draw', namespace='/room')
 def handle_event(data):
@@ -8,6 +9,17 @@ def handle_event(data):
     room_id = int(data['room_id'])
     # send data
     emit('draw', data, to=room_id, include_self=False)
+
+@socketio.on('connect', namespace='/room')
+def handle_connect():
+    print('connected!', request.sid)
+
+@socketio.on('disconnect', namespace='/room')
+def handle_disconnect():
+    room_id = Room.session_table[request.sid]
+    room = lobby.get_room(room_id)
+    print('disconnected!', request.sid)
+    room.leave_room(request.sid)
 
 @socketio.on('update-room', namespace='/room')
 def handle_update_in_room(data):
@@ -19,11 +31,11 @@ def handle_update_in_room(data):
 
 @socketio.on('enter-room', namespace='/room')
 def handle_enter_room(data):
-    # read data
+    # read dataw
     username = data['username']
     room_id = int(data['room_id'])
     room = lobby.get_room(room_id)
-    room.enter_room(username)
+    room.enter_room(username, request.sid)
 
 @socketio.on('leave-room', namespace='/room')
 def handle_leave_room(data):
@@ -32,7 +44,7 @@ def handle_leave_room(data):
     room_id = int(data['room_id'])
     username = data['username']
     room = lobby.get_room(room_id)
-    room.leave_room(username)
+    room.leave_room(request.sid)
 
 @socketio.on('send-image', namespace='/room')
 def handle_send_image_in_room(data):

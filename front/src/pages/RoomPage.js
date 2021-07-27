@@ -10,20 +10,6 @@ function RoomPage(props) {
     const [ socket, setSocket ] = useState(null);
     const [ room, setRoom ] = useState(null);
 
-    const cleanup = (roomId) => {
-        window.removeEventListener('beforeunload', cleanup);
-
-        console.log('cleanup!');
-        if (socket) {
-            socket.emit('leave-room', {
-                'room_id': roomId,
-                'username': props.userName
-            });
-            socket.disconnect();
-            setSocket(null);
-        }
-    }
-
     useEffect(() => {
         console.log('roompage useeffect');
         const { roomId } = props.match.params;
@@ -58,12 +44,16 @@ function RoomPage(props) {
             console.log('start-game', data);
         });
         
-        window.addEventListener('beforeunload', () => {
+        window.onbeforeunload = (event) => {
+            const e = event || window.event;            
+            // Cancel the event
+            e.preventDefault();
+            
             socket.emit('leave-room', {
                 'room_id': roomId,
                 'username': props.userName
             });
-        });
+        }
 
         return () => {
             if (socket) {
@@ -74,6 +64,7 @@ function RoomPage(props) {
                 socket.disconnect();
                 setSocket(null);
             }
+            window.onbeforeunload = null;
         }
     }, []);
     

@@ -33,8 +33,6 @@ function LobbyPage(props) {
 
     }, []);
 
-    
-
     const openCreateRoomModal = () => {
         setIsCreateRoomModalVisible(true);
     }
