@@ -18,6 +18,7 @@ function Canvas(props) {
     const setPrevPoint = v => { prevPoint = v; }
 
     const handleMouseUp = () => {
+        if (!isSynchronized) return;
         setIsDrawing(false);
 
         const { socket } = props;
