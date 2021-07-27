@@ -66,10 +66,13 @@ class Room:
         Room.session_table[session_id] = self.room_id
         join_room(self.room_id)
 
+        print('enter-room', self.joined_users)
         if len(self.joined_users) > 1:
-            for joined_user in self.joined_users:
+            for joined_user_session_id in self.joined_users:
+                joined_user = self.joined_users[joined_user_session_id]
                 if joined_user != username:
                     break
+            print('request-image')
             emit('request-image', {'userRequested': username, 'requestedTo': joined_user}, to=self.room_id, include_self=False)
         emit('update-room', self.to_json(), to=self.room_id, include_self=True)
 

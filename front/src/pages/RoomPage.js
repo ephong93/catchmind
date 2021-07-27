@@ -28,6 +28,8 @@ function RoomPage(props) {
         socket.on('enter-room', data => {
             if (!data.success) {
                 props.history.push('/lobby');
+            } else {
+                
             }
         })
 

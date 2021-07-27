@@ -25,6 +25,7 @@ function Canvas(props) {
     }
 
     const handleMouseDown = e => {
+        if (!isSynchronized) return;
         const point = [e.nativeEvent.offsetX, e.nativeEvent.offsetY];
         setIsDrawing(true);
         setPrevPoint(point);
@@ -37,6 +38,7 @@ function Canvas(props) {
     }
 
     const handleMouseMove = e => {
+        if (!isSynchronized) return;
         if (!isDrawing) return;
         const { userName } = props;
 
@@ -84,6 +86,7 @@ function Canvas(props) {
             });
 
             socket.on('send-image', res => {
+                console.log('send-image');
                 const { sendTo, imageDataURL } = res;
                 if (sendTo === props.userName) {
                     const canvas = canvasRef.current;
@@ -103,18 +106,18 @@ function Canvas(props) {
     useEffect(() => {
         if (props.room) {
             if (props.room.joinedUsers.length === 1) setIsSynchronized(true);
-            else {
-                const { socket, room } = props;
-                socket.on('request-image', res => {
-                    const { userRequested, requestedTo } = res;
+            
+            const { socket, room } = props;
+            socket.on('request-image', res => {
+                console.log('request-iamge');
+                const { userRequested, requestedTo } = res;
 
-                    const canvas = canvasRef.current;
+                const canvas = canvasRef.current;
 
-                    if (props.userName === requestedTo) {
-                        socket.emit('send-image', {'send_to': userRequested, imageDataURL: canvas.toDataURL(), room_id: room.id});
-                    }
-                });
-            }
+                if (props.userName === requestedTo) {
+                    socket.emit('send-image', {'send_to': userRequested, imageDataURL: canvas.toDataURL(), room_id: room.id});
+                }
+            });
         }
     }, [props.room]);
 
