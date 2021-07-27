@@ -53,6 +53,10 @@ function RoomPage(props) {
             console.log('update-room!', room);
             setRoom(room);
         });
+
+        socket.on('start-game', data => {
+            console.log('start-game', data);
+        });
         
         window.addEventListener('beforeunload', () => {
             socket.emit('leave-room', {
@@ -100,7 +104,7 @@ function RoomPage(props) {
                             {
                                 room && 
                                 room.joinedUsers.slice(0, 4).map((user, index) => 
-                                    <UserDisplay key={index} user={user}></UserDisplay>
+                                    <UserDisplay key={index} user={user} userName={props.userName} socket={socket}></UserDisplay>
                                 )
                             }
                         </div>
@@ -114,7 +118,7 @@ function RoomPage(props) {
                             {
                                 room && 
                                 room.joinedUsers.slice(4, 8).map((user, index) => 
-                                    <UserDisplay key={index} user={user}></UserDisplay>
+                                    <UserDisplay key={index} user={user} userName={props.userName} socket={socket}></UserDisplay>
                                 )
                             }
                         </div>

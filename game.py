@@ -1,4 +1,5 @@
 from flask_socketio import emit, join_room, leave_room
+import random
 
 class Lobby:
     def __init__(self):
@@ -49,9 +50,16 @@ class Room:
     def __init__(self, room_id, title, total=8, joined_users=[]):
         self.room_id = room_id
         self.title = title
-        self.status = 'waiting'
+        self.status = 'waiting' # waiting, playing
         self.total = total
         self.joined_users = joined_users
+        self.current_player = None
+        self.current_answer = None
+        self.count_turns = {}
+        self.total_rounds = 2
+        self.current_round = 0
+        self.point_status = {}
+        self.ready_status = {}
 
     def check_if_enterable(self):
         return len(self.joined_users) < self.total
@@ -73,6 +81,7 @@ class Room:
 
 
     def leave_room(self, username):
+        self.ready_status.pop(username)
         self.joined_users.remove(username)
         if len(self.joined_users) == 0:
             lobby.remove_room(self.room_id)
