@@ -49,7 +49,6 @@ function ChatDisplay(props) {
                     {item}
                 </List.Item>)}
             >
-
             </List>
         </div>
         <Input

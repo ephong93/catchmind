@@ -5,6 +5,7 @@ import { WelcomePage, LobbyPage, RoomPage, PageNotFoundPage } from 'pages';
 import { axios } from 'myaxios';
 
 const ProtectedRoute = ({ component: Component, userName, ...rest}) => {
+  console.log('protected route', Component, userName);
   return <Route {...rest} render={props =>
     userName ?
       <Component {...props} {...rest} userName={userName} />

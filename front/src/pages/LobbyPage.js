@@ -18,7 +18,8 @@ function LobbyPage(props) {
             setRoomList(data);
         });
 
-        socket.on('enter-room', data => {
+        socket.on('check-if-enterable', data => {
+            console.log(data);
             if (data.success) {
                 const roomId = data.roomId;
                 props.history.push(`/room/${roomId}`);
@@ -29,6 +30,7 @@ function LobbyPage(props) {
             socket.disconnect();
             setSocket(null);
         }
+
     }, []);
 
     
@@ -38,7 +40,8 @@ function LobbyPage(props) {
     }
 
     const enterRoom = roomId => {
-        socket.emit('enter-room', { 'room_id': roomId, 'username': props.userName });
+        console.log(roomId);
+        socket.emit('check-if-enterable', { 'room_id': roomId, 'username': props.userName });
     }
 
     return (

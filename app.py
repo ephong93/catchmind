@@ -1,8 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-from game import Lobby
-
-lobby = Lobby()
+from game import lobby
 
 if __name__ == '__main__':
     app = Flask(__name__)

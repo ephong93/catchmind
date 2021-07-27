@@ -7,17 +7,16 @@ class Lobby:
 
     def create_room(self, title, username):
         room_id = self.next_id
-        self.rooms[room_id] = Room(room_id, title, joined_users=[username])
+        self.rooms[room_id] = Room(room_id, title, joined_users=[])
         self.next_id += 1
         room = self.rooms[room_id]
 
-        # send data
-        emit('enter-room', { 'success': True, 'roomId': room_id}, namespace='/lobby')
+        emit('check-if-enterable', { 'success': True, 'roomId': room_id}, namespace='/lobby')
         emit('update-room-list', self.get_room_list(), broadcast=True, namespace='/lobby')
         emit('update-room', room.to_json(), broadcast=True, namespace='/room')
 
     def remove_room(self, room_id):
-        self.rooms.remove(room_id)
+        self.rooms.pop(room_id)
 
     def get_room_list(self):
         room_list = []
@@ -38,8 +37,10 @@ class Lobby:
         if len(room.joined_users) < room.total:
             room.joined_users.append(username)
 
-            emit('enter-room', { 'success': True, 'roomId': room_id }, namespace='/lobby')
+            emit('enter-room', { 'success': True, 'roomId': room_id }, namespace='/room')
             emit('update-room-list', self.get_room_list(), broadcast=True, namespace='/lobby')
+        else:
+            emit('enter-room', { 'success': False, 'roomId': room_id }, namespace='/room')
 
 
 
@@ -52,8 +53,15 @@ class Room:
         self.total = total
         self.joined_users = joined_users
 
+    def check_if_enterable(self):
+        return len(self.joined_users) < self.total
     
     def enter_room(self, username):
+        if len(self.joined_users) >= self.total:
+            emit('enter-room', { 'success': False, 'roomId': self.room_id }, namespace='/room')
+            return
+
+        self.joined_users.append(username)
         join_room(self.room_id)
 
         if len(self.joined_users) > 1:
@@ -66,11 +74,11 @@ class Room:
 
     def leave_room(self, username):
         self.joined_users.remove(username)
-        if len(room.joined_users) == 0:
-            lobby.remove_room(room_id)
-        leave_room(room_id)
+        if len(self.joined_users) == 0:
+            lobby.remove_room(self.room_id)
+        leave_room(self.room_id)
 
-        emit('update-room', self.to_json(), to=room_id)
+        emit('update-room', self.to_json(), to=self.room_id)
         emit('update-room-list', lobby.get_room_list(), broadcast=True, namespace='/lobby')
 
     def to_json(self):
@@ -81,3 +89,6 @@ class Room:
             'joinedUsers': self.joined_users,
             'total': self.total
         }
+
+
+lobby = Lobby()

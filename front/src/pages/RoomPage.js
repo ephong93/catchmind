@@ -10,7 +10,22 @@ function RoomPage(props) {
     const [ socket, setSocket ] = useState(null);
     const [ room, setRoom ] = useState(null);
 
+    const cleanup = (roomId) => {
+        window.removeEventListener('beforeunload', cleanup);
+
+        console.log('cleanup!');
+        if (socket) {
+            socket.emit('leave-room', {
+                'room_id': roomId,
+                'username': props.userName
+            });
+            socket.disconnect();
+            setSocket(null);
+        }
+    }
+
     useEffect(() => {
+        console.log('roompage useeffect');
         const { roomId } = props.match.params;
 
         const socket = io('ws://127.0.0.1:5000/room', { transports: ["websocket"] });
@@ -24,6 +39,12 @@ function RoomPage(props) {
             console.log('Connected!');
         });
 
+        socket.on('enter-room', data => {
+            if (!data.success) {
+                props.history.push('/lobby');
+            }
+        })
+
         socket.on('disconnect', () => {
             console.log('Disconnected!');
         });
@@ -33,13 +54,22 @@ function RoomPage(props) {
             setRoom(room);
         });
         
-        return () => {
+        window.addEventListener('beforeunload', () => {
             socket.emit('leave-room', {
                 'room_id': roomId,
                 'username': props.userName
             });
-            socket.disconnect();
-            setSocket(null);
+        });
+
+        return () => {
+            if (socket) {
+                socket.emit('leave-room', {
+                    'room_id': roomId,
+                    'username': props.userName
+                });
+                socket.disconnect();
+                setSocket(null);
+            }
         }
     }, []);
     
