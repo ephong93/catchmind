@@ -29,7 +29,7 @@ function RoomPage(props) {
             if (!data.success) {
                 props.history.push('/lobby');
             } else {
-                
+
             }
         })
 
@@ -45,17 +45,6 @@ function RoomPage(props) {
         socket.on('start-game', data => {
             console.log('start-game', data);
         });
-        
-        window.onbeforeunload = (event) => {
-            const e = event || window.event;            
-            // Cancel the event
-            e.preventDefault();
-            
-            socket.emit('leave-room', {
-                'room_id': roomId,
-                'username': props.userName
-            });
-        }
 
         return () => {
             if (socket) {
@@ -66,7 +55,6 @@ function RoomPage(props) {
                 socket.disconnect();
                 setSocket(null);
             }
-            window.onbeforeunload = null;
         }
     }, []);
     
@@ -104,7 +92,7 @@ function RoomPage(props) {
                     </Col>
                     <Col span={14}>                        
                         <Canvas userName={props.userName} room={room} socket={socket} ></Canvas>
-                        <ChatDisplay></ChatDisplay>
+                        <ChatDisplay socket={socket} userName={props.userName}></ChatDisplay>
                     </Col>
                     <Col span={5}>
                         <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', width: '100%', borderRadius: '2px'}}>

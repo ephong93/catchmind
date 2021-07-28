@@ -1,23 +1,10 @@
-import { List, Input } from 'antd';
-import { useState } from 'react';
+import { List, Input, Avatar, Comment } from 'antd';
+import { useEffect, useState } from 'react';
+
+const { Search } = Input;
 
 const data = [
-    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-    'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-    'cccccccccccccccccccccccccccccc',
-    'ddddddddddddddddddddddddddddddd',
-    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-    'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-    'cccccccccccccccccccccccccccccc',
-    'ddddddddddddddddddddddddddddddd',
-    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-    'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-    'cccccccccccccccccccccccccccccc',
-    'ddddddddddddddddddddddddddddddd',
-    'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-    'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
-    'cccccccccccccccccccccccccccccc',
-    'ddddddddddddddddddddddddddddddd'
+    {'userName': 'abc', 'message': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaa'},
 ]
 
 function ChatDisplay(props) {
@@ -25,15 +12,40 @@ function ChatDisplay(props) {
     const [ chatList, setChatList ] = useState(data);
 
     const handleChange = e => {
-        console.log(e.value);
+        setInputText(e.target.value);
     }
-    const handleKeyDown = e => {
-        if (e.code === 'Enter') {
-            console.log(chatList.concat([inputText]));
-            //setChatList(chatList.concat([inputText]));
-            setInputText('');
+
+    const sendMessage = () => {
+        const socket = props.socket;
+        if (socket) {
+            socket.emit('send-message', {
+                'sender': props.userName,
+                'message': inputText
+            });
         }
+        setChatList(prevChatList => [...prevChatList, {'userName': props.userName, 'message': inputText}]);
+        setInputText('');
     }
+
+    const handleSendMessage = (data) => {
+        const { sender, message } = data;
+        setChatList(prevChatList => [...prevChatList, {'userName': sender, 'message': message}]);
+    }
+
+    useEffect(() => {
+
+        const socket = props.socket;
+        if (socket) {
+            console.log('socket add listener');
+            socket.on('send-message', handleSendMessage);
+        }
+        return () => {
+            if (socket) {
+                socket.off('send-message', handleSendMessage);
+            }
+        }
+    }, [props.socket]);
+
     return <>
         <div
             style={{
@@ -45,16 +57,28 @@ function ChatDisplay(props) {
             <List
                 bordered
                 dataSource={chatList}
-                renderItem={item => (<List.Item>
-                    {item}
-                </List.Item>)}
+                renderItem={item => (
+                    <li>
+                        <Comment
+                            author={item.userName}
+                            avatar={
+                                <Avatar src="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png" />
+                            }
+                            content={item.message}
+                        />
+                    </li>
+                    
+                )}
             >
             </List>
         </div>
-        <Input
+        <Search
             onChange={handleChange}
-            onKeyDown={handleKeyDown}
-        ></Input>
+            //onKeyDown={handleKeyDown}
+            enterButton="Send"
+            onSearch={sendMessage}
+            value={inputText}
+        ></Search>
     </>
 }
 

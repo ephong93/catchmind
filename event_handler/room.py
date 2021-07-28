@@ -65,4 +65,11 @@ def handle_request_answer_in_room(data):
     room = lobby.get_room(room_id)
     if user_requested == room.current_player:
         emit('answer', room.current_answer)
+
     
+@socketio.on('send-message', namespace='/room')
+def handle_send_message(data):
+    session_id = request.sid
+    room_id = Room.session_table[session_id]
+    print(room_id, data)
+    emit('send-message', {'sender': data['sender'], 'message': data['message']}, to=room_id, include_self=False)
