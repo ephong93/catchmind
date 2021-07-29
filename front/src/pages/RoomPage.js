@@ -85,7 +85,7 @@ function RoomPage(props) {
                             {
                                 room && 
                                 room.joinedUsers.slice(0, 4).map((user, index) => 
-                                    <UserDisplay key={index} user={user} userName={props.userName} socket={socket}></UserDisplay>
+                                    <UserDisplay key={index} user={user} me={props.userName === user} socket={socket}></UserDisplay>
                                 )
                             }
                         </div>
@@ -99,7 +99,7 @@ function RoomPage(props) {
                             {
                                 room && 
                                 room.joinedUsers.slice(4, 8).map((user, index) => 
-                                    <UserDisplay key={index} user={user} userName={props.userName} socket={socket}></UserDisplay>
+                                    <UserDisplay key={index} user={user} me={props.userName === user} socket={socket}></UserDisplay>
                                 )
                             }
                         </div>

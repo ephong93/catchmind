@@ -98,7 +98,7 @@ class Room:
             'id': self.room_id,
             'title': self.title,
             'status': self.status,
-            'joinedUsers': [self.joined_users[session_id] for session_id in self.joined_users],
+            'joinedUsers': [self.joined_users[session_id] for session_id in self.joined_users] + [None] * (self.total - len(self.joined_users)),
             'total': self.total
         }
 

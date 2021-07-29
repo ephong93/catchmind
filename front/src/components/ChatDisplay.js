@@ -82,10 +82,14 @@ function ChatDisplay(props) {
             className='chatListContainer'
         >
             <List
-                bordered
                 dataSource={chatList}
                 renderItem={item => (
-                    <li>
+                    <li
+                        style={{
+                            border: '1px solid #eee',
+                            borderTop: 'none'
+                        }}
+                    >
                         <Comment
                             author={item.userName}
                             avatar={

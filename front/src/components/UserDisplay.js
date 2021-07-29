@@ -12,20 +12,47 @@ function UserDisplay(props) {
             margin: 'auto', 
             boxShadow: '2px 2px 6px rgba(0, 0, 0, 0.2)', 
             backgroundColor: 'white',
-            padding: '10px'}}>
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+            }}>
                 <div
                     style={{
                         display: 'flex',
-                        alignItems: 'center'
+                        flexDirection: 'row',
+                        alignItems: 'flex-start',
+                        width: '90%',
+                        height: '90%'
                     }}>
-                    <Avatar size='large' icon={<UserOutlined />} />
-                    <div
-                        style={{
-                            display: 'inline-block',
-                            margin: '0 10px 0 10px',
-                            fontSize: 'large'
-                        }}
-                    >{props.user}</div>
+                        {
+                            props.user ?
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'row',
+                                    flexBasis: '100%'
+                                }}
+                            >
+                                <Avatar size='large' icon={<UserOutlined />} />
+                                <div
+                                    style={{
+                                        display: 'inline-block',
+                                        margin: '0 10px 0 10px',
+                                        fontSize: 'large'
+                                    }}
+                                >{props.user}</div>
+                            </div>
+                            :
+                            <div
+                                style={{
+                                    backgroundColor: '#eee',
+                                    flexBasis: '100%',
+                                    height: '100%',
+                                    borderRadius: '3px'
+                                }}
+                            >
+                            </div>
+                        }
                 </div>
     </div>
 }
