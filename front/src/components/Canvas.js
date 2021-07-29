@@ -7,7 +7,6 @@ function Canvas(props) {
     let isDrawing = false;
     let startTime = 0;
     let prevPoint = null;
-    let playersAreDrawing = new Map();
 
     const [ color, setColor ] = useState('black');
     const [ penWidth, setPenWidth ] = useState(10);
@@ -85,9 +84,9 @@ function Canvas(props) {
                 if (sender === props.userName) return;
                 draw(line, penWidth, color);
             });
-
-            socket.on('send-image', res => {
-                console.log('send-image');
+            
+            socket.on('synchronize-image', res => {
+                console.log('synchronize-image');
                 const { sendTo, imageDataURL } = res;
                 if (sendTo === props.userName) {
                     const canvas = canvasRef.current;

@@ -1,13 +1,12 @@
 import { List, Input, Avatar, Comment } from 'antd';
 import { useEffect, useState, useRef } from 'react';
-
+import './ChatDisplay.css';
 const { Search } = Input;
 
 
 function ChatDisplay(props) {
     const [ inputText, setInputText ] = useState('');
     const [ chatList, setChatList ] = useState([]);
-    const messagesEndRef = useRef(null);
     const chatListRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -15,10 +14,7 @@ function ChatDisplay(props) {
         const scrollHeight = chatList.scrollHeight;
         const height = chatList.clientHeight;
         const maxScrollTop = scrollHeight - height;
-        console.log(height, maxScrollTop, chatList.scrollTop);
         chatList.scrollTop = maxScrollTop > 0 ? maxScrollTop : 0;
-        //console.log(maxScrollTop, chatList.scrollTop);
-        // messagesEndRef.current?.scrollIntoView({ behavior: 'smooth'})
     }
 
     const handleChange = e => {
@@ -26,6 +22,7 @@ function ChatDisplay(props) {
     }
 
     const sendMessage = () => {
+        if (inputText === '') return;
         const socket = props.socket;
         if (socket) {
             socket.emit('send-message', {
@@ -37,9 +34,23 @@ function ChatDisplay(props) {
         setInputText('');
     }
 
-    const handleSendMessage = (data) => {
+    const handleReceiveMessage = (data) => {
         const { sender, message } = data;
         updateMessage(sender, message);
+    }
+
+    const handleSyncrhonizeMessages = (data) => {
+        console.log('syncrhonize message');
+        const { messages, sendTo } = data;
+        console.log(sendTo,  props.userName);
+        if (sendTo !== props.userName) return;
+        const chatList = [];
+        console.log(messages);
+        for (let message of messages) {
+            chatList.push({'userName': message[0], 'message': message[1]});
+        }
+        console.log(chatList);
+        setChatList(chatList);
     }
 
     const updateMessage = (userName, message) => {
@@ -51,23 +62,24 @@ function ChatDisplay(props) {
         const socket = props.socket;
         if (socket) {
             console.log('socket add listener');
-            socket.on('send-message', handleSendMessage);
+            socket.on('send-message', handleReceiveMessage);
+            socket.on('synchronize-messages', handleSyncrhonizeMessages);
         }
         return () => {
             if (socket) {
-                socket.off('send-message', handleSendMessage);
+                socket.off('send-message', handleReceiveMessage);
             }
         }
-    }, [props.socket, chatList]);
+    }, [props.socket]);
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [chatList]);
 
     return <>
         <div
-            style={{
-                height: '200px',
-                overflow: 'scroll',
-                backgroundColor: 'white'
-            }}
             ref={chatListRef}
+            className='chatListContainer'
         >
             <List
                 bordered
@@ -82,15 +94,12 @@ function ChatDisplay(props) {
                             content={item.message}
                         />
                     </li>
-                    
                 )}
             >
             </List>
-            <div ref={messagesEndRef} />
         </div>
         <Search
             onChange={handleChange}
-            //onKeyDown={handleKeyDown}
             enterButton="Send"
             onSearch={sendMessage}
             value={inputText}

@@ -53,6 +53,7 @@ class Room:
         self.status = 'waiting' # waiting, playing
         self.total = total
         self.joined_users = joined_users
+        self.messages = []
 
     def check_if_enterable(self):
         return len(self.joined_users) < self.total
@@ -72,7 +73,6 @@ class Room:
                 joined_user = self.joined_users[joined_user_session_id]
                 if joined_user != username:
                     break
-            print('request-image')
             emit('request-image', {'userRequested': username, 'requestedTo': joined_user}, to=self.room_id, include_self=False)
         emit('update-room', self.to_json(), to=self.room_id, include_self=True)
 
@@ -86,6 +86,12 @@ class Room:
 
         emit('update-room', self.to_json(), to=self.room_id)
         emit('update-room-list', lobby.get_room_list(), broadcast=True, namespace='/lobby')
+
+    def put_message(self, sender, message):
+        self.messages.append((sender, message))
+
+    def get_messages(self):
+        return self.messages
 
     def to_json(self):
         return {

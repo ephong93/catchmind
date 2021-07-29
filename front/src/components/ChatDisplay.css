@@ -1,0 +1,20 @@
+.chatListContainer {
+    height: 200px;
+    overflow-y: scroll;
+    background-color: white;
+}
+
+.chatListContainer::-webkit-scrollbar {
+    width: 7px;
+    background-color: white;
+}
+
+.chatListContainer::-webkit-scrollbar-thumb {
+    background-color: #8855ff;
+    border-radius: 7px;
+}
+
+.chatListContainer::-webkit-scrollbar-track {
+    background-color: #eee;
+    border-radius: 7px;
+}

@@ -52,24 +52,20 @@ def handle_send_image_in_room(data):
     send_to = data['send_to']
     room_id = data['room_id']
     image = data['imageDataURL']
-    
-    # send data
-    emit('send-image', {'imageDataURL': image, 'sendTo': send_to}, to=room_id, include_self=False)
-
-
-@socketio.on('request-answer', namespace='/room')
-def handle_request_answer_in_room(data):
-    room_id = data['room_id']
-    user_requested = data['userRequested']
-
     room = lobby.get_room(room_id)
-    if user_requested == room.current_player:
-        emit('answer', room.current_answer)
+    messages = room.get_messages()
+
+    print('send-image')
+
+    # send data
+    emit('synchronize-image', {'imageDataURL': image, 'sendTo': send_to}, to=room_id, include_self=False)
+    emit('synchronize-messages', {'messages': messages, 'sendTo': send_to}, to=room_id, include_self=False)
 
     
 @socketio.on('send-message', namespace='/room')
 def handle_send_message(data):
     session_id = request.sid
     room_id = Room.session_table[session_id]
-    print(room_id, data)
+    room = lobby.get_room(room_id)
+    room.put_message(data['sender'], data['message'])
     emit('send-message', {'sender': data['sender'], 'message': data['message']}, to=room_id, include_self=False)
