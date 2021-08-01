@@ -28,7 +28,7 @@ def handle_check_if_enterable(data):
     username = data['username']
     room_id = int(data['room_id'])
     room = lobby.get_room(room_id)
-    is_enterable = room.check_if_enterable()
-    emit('check-if-enterable', { 'success': is_enterable, 'roomId': room_id }, namespace='/lobby')
+    is_enterable, message = room.check_if_enterable(username)
+    emit('check-if-enterable', { 'success': is_enterable, 'roomId': room_id, 'message': message }, namespace='/lobby')
     
 

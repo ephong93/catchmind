@@ -105,7 +105,9 @@ function Canvas(props) {
 
     useEffect(() => {
         if (props.room) {
-            if (props.room.joinedUsers.length === 1) setIsSynchronized(true);
+            if (props.room.currentNumberOfUsers === 1) {
+                setIsSynchronized(true);
+            }
             
             const { socket, room } = props;
             socket.on('request-image', res => {

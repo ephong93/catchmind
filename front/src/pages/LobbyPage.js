@@ -1,4 +1,4 @@
-import { Layout, Table, Button } from 'antd';
+import { Layout, Table, Button, message } from 'antd';
 import { useEffect, useState } from 'react';
 import { CreateRoomModal } from 'modals';
 import io from 'socket.io-client';
@@ -10,6 +10,11 @@ function LobbyPage(props) {
     const [ socket, setSocket ] = useState(null);
     const [ isCreateRoomModalVisible, setIsCreateRoomModalVisible ] = useState(false);
 
+
+    const showMessage = (messageContent) => {
+        message.info(messageContent);
+    };
+
     useEffect(() => {
         const socket = io('ws://127.0.0.1:5000/lobby', { transports: ["websocket"] });
         setSocket(socket);
@@ -19,10 +24,13 @@ function LobbyPage(props) {
         });
 
         socket.on('check-if-enterable', data => {
-            console.log(data);
             if (data.success) {
                 const roomId = data.roomId;
                 props.history.push(`/room/${roomId}`);
+            } else if(data.message === 'full-room') {
+                showMessage('Full room!');
+            } else if (data.message === 'already-entered') {
+                showMessage('Already in room!');
             }
         });
 
@@ -85,7 +93,7 @@ function LobbyPage(props) {
                                         title: room.title,
                                         status: room.status,
                                         users: {
-                                            current: room['joinedUsers'].length,
+                                            current: room.currentNumberOfUsers,
                                             total: room.total
                                         }
                                     }

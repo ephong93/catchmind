@@ -1,5 +1,6 @@
 from flask_socketio import emit, join_room, leave_room
-import random
+
+users = []
 
 class Lobby:
     def __init__(self):
@@ -55,19 +56,27 @@ class Room:
         self.joined_users = joined_users
         self.messages = []
 
-    def check_if_enterable(self):
-        return len(self.joined_users) < self.total
+    def check_if_enterable(self, username):
+        if len(self.joined_users) >= self.total:
+            return False, 'full-room'
+        if username in [self.joined_users[sid] for sid in self.joined_users]:
+            return False, 'already-entered'
+        return True, None
 
     def enter_room(self, username, session_id):
         if len(self.joined_users) >= self.total:
-            emit('enter-room', { 'success': False, 'roomId': self.room_id }, namespace='/room')
+            emit('enter-room', { 'success': False, 'roomId': self.room_id, 'message': 'full-room' }, namespace='/room')
+            return
+
+        if username in [self.joined_users[sid] for sid in self.joined_users]:
+            print('enter room failed')
+            emit('enter-room', { 'success': False, 'roomId': self.room_id, 'message': 'already-entered' }, namespace='/room')
             return
 
         self.joined_users[session_id] = username
         Room.session_table[session_id] = self.room_id
         join_room(self.room_id)
 
-        print('enter-room', self.joined_users)
         if len(self.joined_users) > 1:
             for joined_user_session_id in self.joined_users:
                 joined_user = self.joined_users[joined_user_session_id]
@@ -99,6 +108,7 @@ class Room:
             'title': self.title,
             'status': self.status,
             'joinedUsers': [self.joined_users[session_id] for session_id in self.joined_users] + [None] * (self.total - len(self.joined_users)),
+            'currentNumberOfUsers': len(self.joined_users),
             'total': self.total
         }
 

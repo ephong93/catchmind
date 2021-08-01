@@ -1,6 +1,7 @@
 from flask import Blueprint
 from flask import request, session
 from app import lobby
+from game import users
 
 bp = Blueprint('api', __name__, '/api')
 
@@ -20,14 +21,21 @@ def user():
     elif request.method == 'POST':
         data = request.get_json()
         username = data['username']
+        if username in users:
+            return {
+                'success': False,
+                'username': username,
+                'message': 'already-occupied'
+            }
         session['username'] = username
-        print(session)
+        users.append(username)
         return {
             'success': True,
             'username': username
         }
     elif request.method == 'DELETE':
-        session.pop('username', None)
+        username = session.pop('username', None)
+        users.remove(username)
         return {
             'success': True,
             'message': 'logout succeess'
@@ -71,7 +79,6 @@ def room(room_id=None):
         data = request.get_json()
         title = data['title']
         room = lobby.create_room(title)
-        print(lobby.rooms)
         return {
             'success': True,
             'room': room

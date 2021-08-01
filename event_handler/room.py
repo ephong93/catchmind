@@ -16,6 +16,8 @@ def handle_connect():
 
 @socketio.on('disconnect', namespace='/room')
 def handle_disconnect():
+    if request.sid not in Room.session_table:
+        return
     room_id = Room.session_table[request.sid]
     room = lobby.get_room(room_id)
     print('disconnected!', request.sid)

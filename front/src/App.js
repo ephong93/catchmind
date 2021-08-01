@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import 'antd/dist/antd.css';
 import { WelcomePage, LobbyPage, RoomPage, PageNotFoundPage } from 'pages';
 import { axios } from 'myaxios';
+import { message } from 'antd';
 
 const ProtectedRoute = ({ component: Component, userName, ...rest}) => {
   console.log('protected route', Component, userName);
@@ -18,13 +19,17 @@ const ProtectedRoute = ({ component: Component, userName, ...rest}) => {
 function App() {
   const [ userName, setUserName ] = useState(null);
 
-  const logIn = (newUserName) => {
-    setUserName(newUserName);
-    localStorage['catchMindUserName'] = newUserName;
+  const logIn = (newUserName, handleError) => {
     axios.post('http://localhost:5000/api/user', {
       username: newUserName
     }).then(res => {
       console.log(res);
+      if (res.data.success) {
+        setUserName(newUserName);
+        localStorage['catchMindUserName'] = newUserName;
+      } else if (res.data.message === 'already-occupied') {
+        handleError('Username already occupied!');
+      }
     });
   }
 

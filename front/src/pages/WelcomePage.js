@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
-import { Form, Input, Button } from 'antd';
+import { Form, Input, Button, message } from 'antd';
 
 function WelcomePage(props) {
     const [ inputUserName, setInputUserName ] = useState('');
+    const showMessage = messageContent => {
+        message.info(messageContent);
+    }
 
     return  <>
                 <h1 style={{ marginTop: '130px'}}>Enter your name</h1>
@@ -12,7 +15,7 @@ function WelcomePage(props) {
                     </Form.Item>
                     <Form.Item>
                         <Button type="primary" onClick={() => {
-                            props.logIn(inputUserName);
+                            props.logIn(inputUserName, (messageContent) => showMessage(messageContent));
                         }}>Go</Button>
                     </Form.Item>
                 </Form>
