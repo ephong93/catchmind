@@ -19,9 +19,6 @@ function Canvas(props) {
     const handleMouseUp = () => {
         if (!isSynchronized) return;
         setIsDrawing(false);
-
-        const { socket } = props;
-        socket.emit('end-drawing', {'username': props.userName, 'room_id': props.room.id});
     }
 
     const handleMouseDown = e => {
@@ -30,7 +27,7 @@ function Canvas(props) {
         setIsDrawing(true);
         setPrevPoint(point);
         draw([point, point], penWidth, color);
-        send({
+        props.sendLine({
             sender: props.userName,
             'room_id': props.room.id,
             data: [[point, point], penWidth, color]
@@ -50,7 +47,7 @@ function Canvas(props) {
             draw(line, penWidth, color);
             setPrevPoint(currentPoint);
             setStartTime(currentTime);
-            send({
+            props.sendLine({
                 sender: userName,
                 'room_id': props.room.id,
                 data: [line, penWidth, color]
@@ -63,69 +60,52 @@ function Canvas(props) {
         setPenWidth(Math.max(3, Math.min(20, penWidth+deltaY)));
     }
 
-    const send = data => {
-        const { socket } = props;
-        socket.emit('draw', data);
-    }
-
     useEffect(() => {
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        const { socket } = props;
-        if (socket) {
-            socket.on('draw', res => { // TODO: send dot -> send line
-                const { sender, data } = res;
-                const line = data[0];
-                const penWidth = data[1];
-                const color = data[2];
-                if (sender === props.userName) return;
-                draw(line, penWidth, color);
-            });
-            
-            socket.on('synchronize-image', res => {
-                console.log('synchronize-image');
-                const { sendTo, imageDataURL } = res;
-                if (sendTo === props.userName) {
-                    const canvas = canvasRef.current;
-                    const ctx = canvas.getContext('2d');
-                    const img = new Image;
-                    img.onload = () => {
-                        ctx.drawImage(img, 0, 0);
-                    };
-                    img.src = imageDataURL
-                    setIsSynchronized(true);
-                }
-            });
-        }
+        props.addSocketListener('draw', res => {
+            const { sender, data } = res;
+            const line = data[0];
+            const penWidth = data[1];
+            const color = data[2];
+            if (sender === props.userName) return;
+            draw(line, penWidth, color);
+        });
 
-    }, [props.socket]);
+        props.addSocketListener('synchronize-image', res => {
+            const { sendTo, imageDataURL } = res;
 
-    useEffect(() => {
-        if (props.room) {
-            if (props.room.currentNumberOfUsers === 1) {
+            if (sendTo === props.userName) {
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                const img = new Image;
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0);
+                };
+                img.src = imageDataURL
                 setIsSynchronized(true);
             }
-            
-            const { socket, room } = props;
-            socket.on('request-image', res => {
-                console.log('request-iamge');
-                const { userRequested, requestedTo } = res;
+        });
 
-                const canvas = canvasRef.current;
+        props.addSocketListener('request-image', res => {
+            const { userRequested, requestedTo } = res;
 
-                if (props.userName === requestedTo) {
-                    socket.emit('send-image', {'send_to': userRequested, imageDataURL: canvas.toDataURL(), room_id: room.id});
-                }
-            });
-        }
-    }, [props.room]);
+            const canvas = canvasRef.current;
+
+            if (props.userName === requestedTo) {
+                props.sendImage(userRequested, canvas.toDataURL())
+            }
+        });
+
+        if (!isSynchronized)
+            props.synchronizeImage();
+    }, []);
 
 
     const draw = (line, penWidth, color) => {
-        console.log(line, penWidth, color);
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
 
@@ -145,7 +125,6 @@ function Canvas(props) {
             let prevPoint = line[0];
             for (let i = 1; i < line.length; i++) {
                 let nextPoint = line[i];
-                console.log('prev', prevPoint, 'next', nextPoint);
                 ctx.moveTo(prevPoint[0], prevPoint[1]);
                 ctx.lineTo(nextPoint[0], nextPoint[1]);
                 prevPoint = nextPoint;

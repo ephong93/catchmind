@@ -57,11 +57,8 @@ def handle_send_image_in_room(data):
     room = lobby.get_room(room_id)
     messages = room.get_messages()
 
-    print('send-image')
-
     # send data
     emit('synchronize-image', {'imageDataURL': image, 'sendTo': send_to}, to=room_id, include_self=False)
-    emit('synchronize-messages', {'messages': messages, 'sendTo': send_to}, to=room_id, include_self=False)
 
     
 @socketio.on('send-message', namespace='/room')
@@ -71,3 +68,26 @@ def handle_send_message(data):
     room = lobby.get_room(room_id)
     room.put_message(data['sender'], data['message'])
     emit('send-message', {'sender': data['sender'], 'message': data['message']}, to=room_id, include_self=False)
+
+
+@socketio.on('synchronize-messages', namespace='/room')
+def handle_synchronize_messages(data):
+    session_id = request.sid
+    room_id = Room.session_table[session_id]
+    room = lobby.get_room(room_id)
+    username = data['username']
+    emit('synchronize-messages', {'messages': room.messages, 'sendTo': username}, to=room_id, include_self=True)
+
+@socketio.on('synchronize-image', namespace='/room')
+def handle_synchronize_image(data):
+    session_id = request.sid
+    room_id = Room.session_table[session_id]
+    room = lobby.get_room(room_id)
+    username = data['username']
+    if len(room.joined_users) == 1:
+        emit('synchronize-image', {'imageDataURL': None, 'sendTo': username}, to=room_id, include_self=True)
+    for joined_user_session_id in room.joined_users:
+        joined_user = room.joined_users[joined_user_session_id]
+        if joined_user != username:
+            break
+    emit('request-image', {'userRequested': username, 'requestedTo': joined_user}, to=room_id, include_self=False)

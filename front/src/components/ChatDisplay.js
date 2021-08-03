@@ -7,6 +7,7 @@ const { Search } = Input;
 function ChatDisplay(props) {
     const [ inputText, setInputText ] = useState('');
     const [ chatList, setChatList ] = useState([]);
+    const [ isSynchronized, setIsSynchronized ] = useState(false);
     const chatListRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -23,34 +24,10 @@ function ChatDisplay(props) {
 
     const sendMessage = () => {
         if (inputText === '') return;
-        const socket = props.socket;
-        if (socket) {
-            socket.emit('send-message', {
-                'sender': props.userName,
-                'message': inputText
-            });
-        }
+        if (!isSynchronized) return;
+        props.sendMessage(inputText);
         updateMessage(props.userName, inputText);
         setInputText('');
-    }
-
-    const handleReceiveMessage = (data) => {
-        const { sender, message } = data;
-        updateMessage(sender, message);
-    }
-
-    const handleSyncrhonizeMessages = (data) => {
-        console.log('syncrhonize message');
-        const { messages, sendTo } = data;
-        console.log(sendTo,  props.userName);
-        if (sendTo !== props.userName) return;
-        const chatList = [];
-        console.log(messages);
-        for (let message of messages) {
-            chatList.push({'userName': message[0], 'message': message[1]});
-        }
-        console.log(chatList);
-        setChatList(chatList);
     }
 
     const updateMessage = (userName, message) => {
@@ -59,18 +36,31 @@ function ChatDisplay(props) {
 
     useEffect(() => {
         scrollToBottom();
-        const socket = props.socket;
-        if (socket) {
-            console.log('socket add listener');
-            socket.on('send-message', handleReceiveMessage);
-            socket.on('synchronize-messages', handleSyncrhonizeMessages);
-        }
-        return () => {
-            if (socket) {
-                socket.off('send-message', handleReceiveMessage);
+
+        props.addSocketListener('send-message', data => {
+            const { sender, message } = data;
+            updateMessage(sender, message);
+        });
+
+        props.addSocketListener('synchronize-messages', data => {
+            const { messages, sendTo } = data;
+            if (sendTo !== props.userName) return;
+            const chatList = [];
+            for (let message of messages) {
+                chatList.push({'userName': message[0], 'message': message[1]});
             }
+            setChatList(chatList);
+            setIsSynchronized(true);
+        });
+
+        if (!isSynchronized)
+            props.synchronizeMessages();
+        
+        return () => {
+            props.removeSocketListener('send-message');
+            props.removeSocketListener('synchronize-message');
         }
-    }, [props.socket]);
+    }, []);
 
     useEffect(() => {
         scrollToBottom();
